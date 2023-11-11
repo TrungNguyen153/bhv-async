@@ -65,6 +65,13 @@ async fn main() {
                 sleep(Duration::from_secs(1)).await;
                 RunStatus::Failure
             }},
+            DecoratorContinue! {
+                || true,
+                || async {
+                println!("Should run 5");
+                sleep(Duration::from_secs(1)).await;
+                RunStatus::Failure
+            }},
             Decorator! {
                 || true,
                 || async {

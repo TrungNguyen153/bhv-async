@@ -11,7 +11,7 @@ pub struct DecoratorData {
 impl Parse for DecoratorData {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let condition = input.parse::<ExprClosure>()?;
-        eprintln!("can work ?? {condition:#?}");
+        // eprintln!("can work ?? {condition:#?}");
         input.parse::<Token![,]>()?;
 
         if let Ok(task_creation) = input.parse::<ExprClosure>() {

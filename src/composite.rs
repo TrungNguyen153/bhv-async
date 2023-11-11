@@ -5,8 +5,6 @@ use crate::RunStatus;
 /// Can create from Box::pin(an future)
 pub type BoxAction = Pin<Box<dyn Future<Output = RunStatus>>>;
 
-// TODO: How to access parent type ????
-
 #[derive(Clone)]
 pub struct Composite {
     pub name: String,

@@ -19,8 +19,7 @@ impl Clone for Sequence {
     fn clone(&self) -> Self {
         Self {
             childs: self.childs.clone(),
-            index: 0,
-            fut: None,
+            ..Default::default()
         }
     }
 }
@@ -31,11 +30,16 @@ impl Sequence {
     pub fn new(childs: impl Into<Vec<Composite>>) -> Self {
         Self {
             childs: childs.into(),
-            index: 0,
-            fut: None,
+            ..Default::default()
         }
     }
 }
+
+/// Those children composite will not break composite Selector
+/// Composite Selector: PrioritySelector,...
+/// maybe export api for add more selector
+/// => maybe should use "static mut"
+const OPTIONAL_CHILD_NAMES: [&str; 1] = ["DecoratorContinue"];
 
 impl Future for Sequence {
     type Output = RunStatus;
@@ -85,10 +89,13 @@ impl Future for Sequence {
 
 /// An Selector execute each branch of logic in order, until one succeeds. This composite
 /// will fail only if all branches fail as well.
+///
+/// This composite type is Selector
 #[derive(Default)]
 pub struct PrioritySelector {
     childs: Vec<Composite>,
     index: usize,
+    is_running_optional_child: bool,
     fut: Option<BoxAction>,
 }
 
@@ -96,8 +103,7 @@ impl Clone for PrioritySelector {
     fn clone(&self) -> Self {
         Self {
             childs: self.childs.clone(),
-            index: 0,
-            fut: None,
+            ..Default::default()
         }
     }
 }
@@ -106,8 +112,7 @@ impl PrioritySelector {
     pub fn new(childs: impl Into<Vec<Composite>>) -> Self {
         Self {
             childs: childs.into(),
-            index: 0,
-            fut: None,
+            ..Default::default()
         }
     }
 }
@@ -132,12 +137,18 @@ impl Future for PrioritySelector {
             );
             let fut = (child.task_production)();
             this.fut = Some(fut);
+            this.is_running_optional_child = OPTIONAL_CHILD_NAMES.contains(&&*child.name);
         }
 
         // let fut = this.fut.as_mut().unwrap();
 
         match Pin::new(this.fut.as_mut().unwrap()).poll(cx) {
-            Poll::Ready(status) => {
+            Poll::Ready(mut status) => {
+                if this.is_running_optional_child {
+                    // overwrite status to failure if running Optional child
+                    status = RunStatus::Failure;
+                }
+
                 if status == RunStatus::Success {
                     return Poll::Ready(RunStatus::Success);
                 }
