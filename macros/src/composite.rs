@@ -1,17 +1,25 @@
-use proc_macro2::TokenStream as TokenStream2;
+use proc_macro2::{Literal, TokenStream as TokenStream2};
 use quote::quote;
-use syn::{parse::Parse, Expr, ExprClosure, Stmt};
+use syn::{parse::Parse, Expr, ExprClosure, Stmt, Token};
 
 #[derive(Debug)]
 pub struct ActionData {
+    action_name: Option<Literal>,
     closure: ExprClosure,
 }
 
 impl Parse for ActionData {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let action_name = input.parse::<Literal>().ok();
+        if action_name.is_some() {
+            input.parse::<Token![,]>()?;
+        }
         let closure: ExprClosure = input.parse()?;
 
-        Ok(Self { closure })
+        Ok(Self {
+            closure,
+            action_name,
+        })
     }
 }
 
@@ -21,11 +29,20 @@ impl ActionData {
             // Async body
             // no need capture anything
             let body = self.closure.body.as_ref();
-            return quote! {
-            ::bhv_async::composite::Composite::new_action
-                (
-                    || Box::pin(#body)
-                )
+            if let Some(action_name) = &self.action_name {
+                return quote! {
+                ::bhv_async::composite::Composite::new
+                    (
+                        #action_name, || Box::pin(#body)
+                    )
+                };
+            } else {
+                return quote! {
+                ::bhv_async::composite::Composite::new_action
+                    (
+                        || Box::pin(#body)
+                    )
+                };
             };
         }
 
@@ -64,11 +81,20 @@ impl ActionData {
             }
         });
 
-        quote! {
-            ::bhv_async::composite::Composite::new_action
-                (
-                    #capture || { #(#mapping_statements)* }
-                )
+        if let Some(action_name) = &self.action_name {
+            quote! {
+                ::bhv_async::composite::Composite::new
+                    (
+                        #action_name, #capture || { #(#mapping_statements)* }
+                    )
+            }
+        } else {
+            quote! {
+                ::bhv_async::composite::Composite::new_action
+                    (
+                        #capture || { #(#mapping_statements)* }
+                    )
+            }
         }
     }
 }

@@ -12,13 +12,16 @@ fn main() {
 
 fn create_tree() -> Composite {
     let action = Action! {
+        "Bushit",
         || async {
             sleep(Duration::from_secs(1)).await;
             RunStatus::Success
         }
     };
 
+    // capture will cant known name, unless you mark name for it
     let _action_with_capture = Action! {
+        "Bushit",
         move || {
             let action_move = action.clone();
             return async move {
@@ -38,6 +41,7 @@ fn create_tree() -> Composite {
     Sequence! {
         _action_with_capture,
         Action! {
+            "FirstChildinSequence",
             || async {
                 sleep(Duration::from_secs(1)).await;
                 RunStatus::Success

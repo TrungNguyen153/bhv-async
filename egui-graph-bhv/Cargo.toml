@@ -1,0 +1,11 @@
+[package]
+name = "egui-graph-bhv"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+eframe = "0.21"
+egui_node_graph = { git = "https://github.com/setzer22/egui_node_graph.git"}
+bhv-async = { path = "../"}

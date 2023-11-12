@@ -54,7 +54,7 @@ impl Future for Sequence {
             let index = this.index;
             let child = &this.childs[index];
             println!(
-                "Running task {} ({}/{})",
+                "Running composite name: {} ({}/{})",
                 child.name,
                 index + 1,
                 this.childs.len()
@@ -130,7 +130,7 @@ impl Future for PrioritySelector {
             let index = this.index;
             let child = &this.childs[index];
             println!(
-                "Running task {} ({}/{})",
+                "Running composite name: {} ({}/{})",
                 child.name,
                 index + 1,
                 this.childs.len()

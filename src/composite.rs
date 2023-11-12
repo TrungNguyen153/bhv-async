@@ -32,8 +32,9 @@ macro_rules! IMPLEMENT_INTO_COMPOSITE {
 
 impl Composite {
     pub fn new(name: impl Into<String>, task_production: impl Fn() -> BoxAction + 'static) -> Self {
+        let name = name.into();
         Self {
-            name: name.into(),
+            name,
             task_production: Rc::new(task_production),
         }
     }
