@@ -1,12 +1,18 @@
 #[macro_use]
 pub mod composite;
 pub mod common_behaviors;
-
+#[cfg(feature = "macros")]
+pub mod macros {
+    pub use bhv_async_macros::*;
+}
+/// Re-export all type in bhv-async
 pub mod prelude {
     pub use crate::common_behaviors::*;
     pub use crate::composite::*;
     pub use crate::RunStatus;
-    pub use bhv_async_macros::*;
+
+    #[cfg(feature = "macros")]
+    pub use crate::macros::*;
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]

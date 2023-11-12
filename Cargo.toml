@@ -7,8 +7,12 @@ edition = "2021"
 [workspace]
 members = ["macros"]
 
+[features]
+default = ["macros"]
+macros = ["bhv-async-macros"]
+
 [dependencies]
-bhv-async-macros = { path = "macros" }
+bhv-async-macros = { path = "macros", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1.34", features = ["full"]}
