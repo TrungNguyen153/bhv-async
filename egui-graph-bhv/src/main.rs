@@ -1,91 +1,66 @@
-use bhv_async::prelude::*;
-use eframe::egui;
-use egui_node_graph::*;
+// use bhv_async::prelude::*;
+use eframe::{egui, run_native, App, CreationContext};
+use egui_graphs::{
+    DefaultEdgeShape, DefaultNodeShape, Graph, GraphView, SettingsInteraction, SettingsStyle,
+};
+use petgraph::{stable_graph::StableGraph, Directed};
+
+pub struct InteractiveApp {
+    g: Graph<String, u32, Directed>,
+}
+
+impl InteractiveApp {
+    fn new(_: &CreationContext<'_>) -> Self {
+        let g = generate_graph();
+        Self { g }
+    }
+}
+
+impl App for InteractiveApp {
+    fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            let interaction_settings = &SettingsInteraction::new()
+                .with_dragging_enabled(true)
+                .with_node_clicking_enabled(true)
+                .with_node_selection_enabled(true)
+                .with_node_selection_multi_enabled(true)
+                .with_edge_clicking_enabled(true)
+                .with_edge_selection_enabled(true)
+                .with_edge_selection_multi_enabled(true);
+            let style_settings = &SettingsStyle::new().with_labels_always(true);
+            ui.add(
+                &mut GraphView::<_, _, _, _, DefaultNodeShape, DefaultEdgeShape<_>>::new(
+                    &mut self.g,
+                )
+                .with_styles(style_settings)
+                .with_interactions(interaction_settings),
+            );
+        });
+    }
+}
+
+fn generate_graph() -> Graph<String, u32> {
+    let mut g = StableGraph::new();
+
+    let a = g.add_node("NodeA".to_string());
+    let b = g.add_node("NodeB".into());
+    let c = g.add_node("NodeC".into());
+
+    // parent_node, node id, 1
+
+    g.add_edge(a, b, 1);
+    g.add_edge(b, c, 99);
+    g.add_edge(c, a, 1000);
+
+    Graph::from(&g)
+}
 
 fn main() {
-    use eframe::egui::Visuals;
-
-    eframe::run_native(
-        "Egui node graph example",
-        eframe::NativeOptions::default(),
-        Box::new(|cc| {
-            cc.egui_ctx.set_visuals(Visuals::dark());
-            Box::<DemoApp>::default()
-        }),
+    let native_options = eframe::NativeOptions::default();
+    run_native(
+        "egui_graphs_interactive_demo",
+        native_options,
+        Box::new(|cc| Box::new(InteractiveApp::new(cc))),
     )
-    .expect("Failed to run native example");
-}
-
-/// Note query state
-#[derive(Clone)]
-enum BhvNodeTemplate {}
-struct BhvUserState {
-    pub active_node: Option<NodeId>,
-}
-
-/// Node Info
-#[derive(Default, Clone)]
-struct BhvNodeData {
-    pub composite: Option<Composite>,
-}
-/// process input data for node
-#[derive(PartialEq, Eq)]
-enum BhvDataType {}
-struct BhvValueType {}
-type BhvGraph = Graph<BhvNodeData, BhvDataType, BhvValueType>;
-type BhvEditorState =
-    GraphEditorState<BhvNodeData, BhvDataType, BhvValueType, BhvNodeTemplate, BhvUserState>;
-// =========== Then, you need to implement some traits ============
-
-// A trait for the data types, to tell the library how to display them
-impl DataTypeTrait<BhvUserState> for BhvDataType {
-    fn name(&self) -> std::borrow::Cow<str> {
-        std::borrow::Cow::Borrowed("What is this kind")
-    }
-
-    fn data_type_color(&self, user_state: &mut BhvUserState) -> egui::Color32 {
-        egui::Color32::from_rgb(38, 109, 211)
-    }
-}
-
-impl NodeTemplateTrait for BhvNodeTemplate {
-    type NodeData = BhvNodeData;
-
-    type DataType = BhvDataType;
-
-    type ValueType = BhvValueType;
-
-    type UserState = BhvUserState;
-
-    type CategoryType = &'static str;
-
-    fn node_finder_label(&self, user_state: &mut Self::UserState) -> std::borrow::Cow<str> {
-        std::borrow::Cow::Borrowed("This is node_finder_label")
-    }
-
-    fn node_graph_label(&self, user_state: &mut Self::UserState) -> String {
-        "This is node_graph_label".into()
-    }
-
-    fn user_data(&self, user_state: &mut Self::UserState) -> Self::NodeData {
-        BhvNodeData::default()
-    }
-
-    fn build_node(
-        &self,
-        graph: &mut Graph<Self::NodeData, Self::DataType, Self::ValueType>,
-        user_state: &mut Self::UserState,
-        node_id: NodeId,
-    ) {
-        // empty
-    }
-}
-
-#[derive(Default)]
-pub struct DemoApp;
-
-impl eframe::App for DemoApp {
-    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-        todo!()
-    }
+    .unwrap();
 }

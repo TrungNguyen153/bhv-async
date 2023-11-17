@@ -8,9 +8,9 @@ edition = "2021"
 members = ["macros", "egui-graph-bhv"]
 
 [features]
-default = ["macros", "petgraph"]
+default = ["macros", "graph"]
 macros = ["bhv-async-macros"]
-petgraph = ["petgraph"]
+graph = ["petgraph"]
 
 [dependencies]
 bhv-async-macros = { path = "macros", optional = true }
