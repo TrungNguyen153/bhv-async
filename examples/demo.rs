@@ -105,18 +105,18 @@ fn create_tree() -> Composite {
 }
 
 fn test_run_in_sync_fn(composite: Composite) {
+    // first create tokio runtime
     let rt = tokio::runtime::Runtime::new().unwrap();
+    // then enter guard
     let _guard = rt.enter();
     let mut task = (composite.task_production)();
     let begin = std::time::Instant::now();
     loop {
-        let fut = async {
-            std::future::poll_fn(|cx| match task.as_mut().poll(cx) {
-                std::task::Poll::Ready(_) => std::task::Poll::Ready(true),
-                std::task::Poll::Pending => std::task::Poll::Ready(false),
-            })
-            .await
-        };
+        // need fps counter for reduce CPU in this loop...
+        let fut = std::future::poll_fn(|cx| match task.as_mut().poll(cx) {
+            std::task::Poll::Ready(_) => std::task::Poll::Ready(true),
+            std::task::Poll::Pending => std::task::Poll::Ready(false),
+        });
         if tokio::runtime::Handle::current().block_on(fut) {
             break;
         }

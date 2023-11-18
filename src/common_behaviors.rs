@@ -465,7 +465,3 @@ impl Future for UntilFailure {
 }
 
 IMPLEMENT_INTO_COMPOSITE!(UntilFailure);
-
-// TODO:
-// WhileNode
-// IfNode
